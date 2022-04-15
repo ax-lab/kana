@@ -11,41 +11,47 @@ pub trait TextInput {
 
 /// Implementation of [`TextInput`] for a borrowed [`str`] slice.
 pub struct StrInput<'a> {
-	input: &'a str,
+	source: &'a str,
 	offset: usize,
 }
 
 impl<'a> StrInput<'a> {
 	pub fn new(input: &'a str) -> StrInput<'a> {
-		StrInput { input, offset: 0 }
+		StrInput {
+			source: input,
+			offset: 0,
+		}
 	}
 }
 
 impl<'a> TextInput for StrInput<'a> {
 	fn read_chars(&mut self, count: usize) -> &str {
-		let out = take_chars_at(self.input, self.offset, count);
-		self.offset += out.len();
-		out
+		let output = take_chars_from(self.source, self.offset, count);
+		self.offset += output.len();
+		output
 	}
 }
 
 /// Implementation of [`TextInput`] for a owned [`String`].
 pub struct StringInput {
-	input: String,
+	source: String,
 	offset: usize,
 }
 
 impl StringInput {
 	pub fn new(input: String) -> StringInput {
-		StringInput { input, offset: 0 }
+		StringInput {
+			source: input,
+			offset: 0,
+		}
 	}
 }
 
 impl TextInput for StringInput {
 	fn read_chars(&mut self, count: usize) -> &str {
-		let out = take_chars_at(self.input.as_str(), self.offset, count);
-		self.offset += out.len();
-		out
+		let output = take_chars_from(self.source.as_str(), self.offset, count);
+		self.offset += output.len();
+		output
 	}
 }
 
@@ -54,7 +60,7 @@ pub struct CharsInput<T>
 where
 	T: Iterator<Item = char>,
 {
-	input: T,
+	source: T,
 	buffer: String,
 }
 
@@ -64,7 +70,7 @@ where
 {
 	pub fn new(input: T) -> CharsInput<T> {
 		CharsInput {
-			input,
+			source: input,
 			buffer: Default::default(),
 		}
 	}
@@ -79,7 +85,7 @@ where
 
 		let mut read = 0;
 		while read < count {
-			if let Some(char) = self.input.next() {
+			if let Some(char) = self.source.next() {
 				self.buffer.push(char);
 				read += 1;
 			} else {
@@ -95,7 +101,7 @@ where
 // Utilities
 //============================================================================//
 
-fn take_chars_at(input: &str, offset: usize, count: usize) -> &str {
+fn take_chars_from(input: &str, offset: usize, count: usize) -> &str {
 	let input = unsafe { input.get_unchecked(offset..) };
 	let length = if let Some((next_index, _)) = input.char_indices().nth(count) {
 		next_index
@@ -127,15 +133,18 @@ mod test_text_input {
 
 				let output = input1.read_chars(count);
 				assert_eq!(output, expected,
-					"StrInput.read({}): expected `{}`, got `{}`", count, expected, output);
+					"StrInput.read({}): expected `{}`, got `{}`",
+					count, expected, output);
 
 				let output = input2.read_chars(count);
 				assert_eq!(output, expected,
-					"StringInput.read({}): expected `{}`, got `{}`", count, expected, output);
+					"StringInput.read({}): expected `{}`, got `{}`",
+					count, expected, output);
 
 				let output = input3.read_chars(count);
 				assert_eq!(output, expected,
-					"CharsInput.read({}): expected `{}`, got `{}`", count, expected, output);
+					"CharsInput.read({}): expected `{}`, got `{}`",
+					count, expected, output);
 			})+
 		};
 	}

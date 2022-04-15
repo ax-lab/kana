@@ -23,7 +23,7 @@ mod test_to_hiragana {
 			let output: String = to_hiragana($input.chars()).collect();
 			assert_eq!(
 				output, $expected,
-				"\n -> for input `{}`: expected `{}` but got `{}`",
+				"\n -> to_hiragana(`{}`): expected `{}`, but got `{}`",
 				$input, $expected, output
 			);
 		};

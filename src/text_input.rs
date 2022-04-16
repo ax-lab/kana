@@ -1,5 +1,8 @@
-/// Provides an abstraction for text input that supports reading a string
-/// with the specified number of characters at a time.
+/// Provides an abstraction for text input that supports processing the input
+/// segmented by characters.
+///
+/// This trait supports peeking at an arbitrary number of characters from the
+/// input as a [`str`] slice and advancing the input by characters.
 pub trait TextInput {
 	/// Returns the next `count` characters from the input as a string slice
 	/// without consuming the input.

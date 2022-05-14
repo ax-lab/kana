@@ -1,3 +1,5 @@
+mod convert;
+
 mod hiragana;
 pub use hiragana::*;
 

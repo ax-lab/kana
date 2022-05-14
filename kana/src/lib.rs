@@ -1,8 +1,16 @@
+mod hiragana;
+pub use hiragana::*;
+
 #[cfg(test)]
 mod tests {
+	use super::*;
+
 	#[test]
-	fn it_works() {
-		let result = 2 + 2;
-		assert_eq!(result, 4);
+	fn to_hiragana_works() {
+		let output = to_hiragana("a");
+		assert_eq!(output, &["あ"]);
+
+		let output = to_hiragana("hiragana");
+		assert_eq!(output, &["ひらがな"]);
 	}
 }

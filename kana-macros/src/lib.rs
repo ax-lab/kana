@@ -9,35 +9,49 @@ pub fn make_convert(input: TokenStream) -> TokenStream {
 
 	let name = input.name;
 
-	let pairs = input.pairs.into_iter().map(|it| {
+	let pairs = input.pairs.into_iter().filter_map(|it| {
 		let source = it.source;
 		let target = it.target;
-		quote! {
-			if let Some(stripped) = input.strip_prefix(#source) {
-				output.push_str(#target);
-				input = stripped;
-				continue;
+		let target = match target.len() {
+			0 => {
+				return None;
 			}
-		}
+			1 => {
+				let target = &target[0];
+				quote! { Match::Text(#target) }
+			}
+			_ => {
+				let head = &target[0];
+				let tail = target.iter().skip(1);
+				quote! { Match::List(#head, vec![ #( #tail,)* ])}
+			}
+		};
+
+		let output = quote! {
+			let source = #source;
+			if input.starts_with(source) {
+				return (source.len(), #target);
+			}
+		};
+		Some(output)
 	});
+
 	let pairs = pairs.collect::<Vec<_>>();
 
 	let tokens = quote! {
-		fn #name(mut input: &'static str) -> String {
-			let mut output = String::new();
-			while input.len() > 0 {
+		struct #name;
+
+		impl Conversion for #name {
+			fn convert_next(mut input: &str) -> (usize, Match) {
 				#( #pairs )*
 
-				if let Some((index, _)) = input.char_indices().nth(1) {
-					output.push_str(&input[..index]);
-					input = &input[index..];
+				let skip_length = if let Some((index, _)) = input.char_indices().nth(1) {
+					index
 				} else {
-					output.push_str(input);
-					break;
-				}
+					input.len()
+				};
+				(skip_length, Match::None)
 			}
-
-			output
 		}
 	};
 
@@ -67,7 +81,7 @@ impl Parse for ConversionTable {
 
 struct ConversionPair {
 	pub source: String,
-	pub target: String,
+	pub target: Vec<String>,
 }
 
 impl Parse for ConversionPair {
@@ -77,8 +91,18 @@ impl Parse for ConversionPair {
 
 		input.parse::<Token![=]>()?;
 
-		let target: LitStr = input.parse()?;
-		let target = target.value();
+		let target = if input.peek(token::Bracket) {
+			let content;
+			bracketed!(content in input);
+
+			let target = content.parse_terminated::<_, Token![,]>(<LitStr as Parse>::parse)?;
+			let target: Vec<String> = target.into_iter().map(|x| x.value()).collect();
+			target
+		} else {
+			let target: LitStr = input.parse()?;
+			let target = vec![target.value()];
+			target
+		};
 
 		Ok(ConversionPair { source, target })
 	}

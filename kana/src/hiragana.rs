@@ -1,21 +1,18 @@
+use crate::convert::*;
+use kana_macros::make_convert;
+
+make_convert!(Hiragana =>
+	"a" = "あ",
+	"-" = "－",
+	"hiragana" = "ひらがな",
+	"nya" = ["にゃ", "んや"],
+	"tta" = "った",
+	"ttta" = "っった",
+	"tttta" = "っっった",
+);
+
 pub fn to_hiragana<S: AsRef<str>>(input: S) -> Vec<String> {
-	let input = input.as_ref();
-	match input {
-		"" => Vec::new(),
-		"a" => vec!["あ".to_string()],
-		"hiragana" => vec!["ひらがな".to_string()],
-		"nya" => vec!["にゃ".to_string(), "んや".to_string()],
-		"nya-nya" => vec![
-			"にゃ－にゃ".to_string(),
-			"にゃ－んや".to_string(),
-			"んや－にゃ".to_string(),
-			"んや－んや".to_string(),
-		],
-		"tta" => vec!["った".to_string()],
-		"ttta" => vec!["っった".to_string()],
-		"tttta" => vec!["っっった".to_string()],
-		_ => vec![input.to_string()],
-	}
+	convert_all::<_, Hiragana>(input)
 }
 
 #[cfg(test)]
@@ -35,6 +32,9 @@ mod tests {
 
 		let output = to_hiragana("hiragana");
 		assert_eq!(output, &["ひらがな"]);
+
+		let output = to_hiragana("aaaaa");
+		assert_eq!(output, &["あああああ"]);
 	}
 
 	#[test]

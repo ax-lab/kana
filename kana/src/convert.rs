@@ -56,12 +56,20 @@ pub fn convert_all<S: AsRef<str>, T: Conversion>(input: S) -> Vec<String> {
 				let mut result = Vec::new();
 
 				let push = |result: &mut Vec<String>, text: &str| {
-					for it in next_output.iter() {
-						let mut item = String::with_capacity(output.len() + text.len() + it.len());
+					if next_output.len() == 0 {
+						let mut item = String::with_capacity(output.len() + text.len());
 						item.push_str(&output);
 						item.push_str(text);
-						item.push_str(it);
 						result.push(item);
+					} else {
+						for it in next_output.iter() {
+							let mut item =
+								String::with_capacity(output.len() + text.len() + it.len());
+							item.push_str(&output);
+							item.push_str(text);
+							item.push_str(it);
+							result.push(item);
+						}
 					}
 				};
 
@@ -75,7 +83,12 @@ pub fn convert_all<S: AsRef<str>, T: Conversion>(input: S) -> Vec<String> {
 		}
 		input = &input[skip_len..];
 	}
-	vec![output]
+
+	if output.len() > 0 {
+		vec![output]
+	} else {
+		vec![]
+	}
 }
 
 #[cfg(test)]
@@ -114,7 +127,7 @@ mod tests {
 	);
 
 	#[test]
-	fn converts_ambiguous_input_to_multiple_matches() {
+	fn all_generates_all_ambiguous_combinations() {
 		assert_eq!(convert_all::<_, Multi>("a"), &["A", "Ae", "@"]);
 		assert_eq!(convert_all::<_, Multi>("b"), &["B", "Be"]);
 		assert_eq!(convert_all::<_, Multi>("c"), &["C", "Ce"]);
@@ -128,7 +141,12 @@ mod tests {
 	}
 
 	#[test]
-	fn convert_returns_first_conversion_for_ambiguous_matches() {
+	fn all_returns_empty_on_empty_input() {
+		assert!(convert_all::<_, Multi>("").len() == 0);
+	}
+
+	#[test]
+	fn returns_first_conversion_for_ambiguous_matches() {
 		assert_eq!(convert::<_, Multi>("abc-abc"), "ABC-ABC");
 	}
 }

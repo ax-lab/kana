@@ -11,6 +11,7 @@ pub fn make_convert(input: TokenStream) -> TokenStream {
 
 	let pairs = input.pairs.into_iter().filter_map(|it| {
 		let source = it.source;
+		let lookahead = format!("{}{}", source, it.lookahead);
 		let target = it.target;
 		let target = match target.len() {
 			0 => {
@@ -28,9 +29,8 @@ pub fn make_convert(input: TokenStream) -> TokenStream {
 		};
 
 		let output = quote! {
-			let source = #source;
-			if input.starts_with(source) {
-				return (source.len(), #target);
+			if input.starts_with(#lookahead) {
+				return (#source.len(), #target);
 			}
 		};
 		Some(output)
@@ -60,7 +60,7 @@ pub fn make_convert(input: TokenStream) -> TokenStream {
 
 struct ConversionTable {
 	pub name: Ident,
-	pub pairs: Vec<ConversionPair>,
+	pub pairs: Vec<ConversionRow>,
 }
 
 impl Parse for ConversionTable {
@@ -72,22 +72,31 @@ impl Parse for ConversionTable {
 
 		input.parse::<Token![=>]>()?;
 
-		let pairs = input.parse_terminated::<_, Token![,]>(ConversionPair::parse)?;
+		let pairs = input.parse_terminated::<_, Token![,]>(ConversionRow::parse)?;
 		table.pairs.extend(pairs);
 
 		Ok(table)
 	}
 }
 
-struct ConversionPair {
+struct ConversionRow {
 	pub source: String,
+	pub lookahead: String,
 	pub target: Vec<String>,
 }
 
-impl Parse for ConversionPair {
+impl Parse for ConversionRow {
 	fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
 		let source: LitStr = input.parse()?;
 		let source = source.value();
+
+		let lookahead = if input.peek(Token![+]) {
+			input.parse::<Token![+]>().unwrap();
+			let lookahead: LitStr = input.parse()?;
+			lookahead.value()
+		} else {
+			String::new()
+		};
 
 		input.parse::<Token![=]>()?;
 
@@ -104,6 +113,10 @@ impl Parse for ConversionPair {
 			target
 		};
 
-		Ok(ConversionPair { source, target })
+		Ok(ConversionRow {
+			source,
+			lookahead,
+			target,
+		})
 	}
 }

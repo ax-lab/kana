@@ -6,9 +6,8 @@ make_convert!(Hiragana =>
 	"-" = "－",
 	"hiragana" = "ひらがな",
 	"nya" = ["にゃ", "んや"],
-	"tta" = "った",
-	"ttta" = "っった",
-	"tttta" = "っっった",
+	"t"+"t" = "っ",
+	"ta" = "た",
 );
 
 pub fn to_hiragana<S: AsRef<str>>(input: S) -> Vec<String> {

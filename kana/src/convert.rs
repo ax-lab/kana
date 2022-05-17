@@ -149,4 +149,23 @@ mod tests {
 	fn returns_first_conversion_for_ambiguous_matches() {
 		assert_eq!(convert::<_, Multi>("abc-abc"), "ABC-ABC");
 	}
+
+	make_convert!(LookAhead =>
+		"ka" = "か",
+		"ki" = "き",
+		"ta" = "た",
+		"ti" = "ち",
+		"t"+"t" = "っ",
+		"k"+"k" = "っ",
+	);
+
+	#[test]
+	fn supports_look_ahead() {
+		assert_eq!(convert::<_, LookAhead>("kaki"), "かき");
+		assert_eq!(convert::<_, LookAhead>("tati"), "たち");
+		assert_eq!(convert::<_, LookAhead>("kka"), "っか");
+		assert_eq!(convert::<_, LookAhead>("tta"), "った");
+		assert_eq!(convert::<_, LookAhead>("kakka"), "かっか");
+		assert_eq!(convert::<_, LookAhead>("tatta"), "たった");
+	}
 }

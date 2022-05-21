@@ -13,6 +13,6 @@ mod tests {
 		assert_eq!(output, &["あ"]);
 
 		let output = to_hiragana("hiragana");
-		assert_eq!(output, &["ひらがな"]);
+		assert_eq!(output, &["ひらがな", "ひらがんあ"]);
 	}
 }

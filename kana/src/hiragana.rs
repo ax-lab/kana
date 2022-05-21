@@ -5,6 +5,7 @@ make_convert!(Hiragana =>
 	"a" = "あ",
 	"-" = "－",
 	"hiragana" = "ひらがな",
+	"katakana" = "かたかな",
 	"nya" = ["にゃ", "んや"],
 	"t"+"t" = "っ",
 	"ta" = "た",

@@ -8,7 +8,8 @@
 		"Cargo.lock",
 		"cspell.json",
 		"node_modules/**",
-		"package-lock.json"
+		"package-lock.json",
+		"kana/tests/**"
 	],
 	"ignoreRegExpList": ["`[^\\s]+`", "\"[a-z]+\""]
 }

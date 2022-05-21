@@ -7,3 +7,6 @@ edition = "2021"
 
 [dependencies]
 kana-macros = { path = "../kana-macros" }
+
+[dev-dependencies]
+tux = { version = "0.2" }
